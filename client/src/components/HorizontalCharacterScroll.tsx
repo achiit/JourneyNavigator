@@ -1,0 +1,282 @@
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion';
+import { Character } from '@/data/characters';
+
+interface HorizontalCharacterScrollProps {
+  characters: Character[];
+}
+
+const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ characters }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: false, amount: 0.2 });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [manualScroll, setManualScroll] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [scrollWidth, setScrollWidth] = useState(0);
+  
+  // Initial setup to get dimensions
+  useEffect(() => {
+    if (containerRef.current) {
+      setContainerWidth(containerRef.current.clientWidth);
+      setScrollWidth(containerRef.current.scrollWidth);
+    }
+    
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth);
+        setScrollWidth(containerRef.current.scrollWidth);
+      }
+    };
+    
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      window.addEventListener('resize', updateDimensions);
+    };
+  }, []);
+  
+  // Get scroll position from container
+  const { scrollXProgress } = useScroll({
+    container: containerRef
+  });
+  
+  // Make scroll proportional to viewport scrolling
+  useEffect(() => {
+    if (!manualScroll && containerRef.current && isInView) {
+      const handleScroll = () => {
+        // Get viewport scroll position
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const containerTop = containerRef.current!.getBoundingClientRect().top + window.scrollY;
+        const containerHeight = containerRef.current!.offsetHeight;
+        
+        // Calculate how far through the section we've scrolled (0 to 1)
+        const sectionProgress = Math.max(0, Math.min(1, 
+          (scrollY - containerTop + windowHeight * 0.8) / 
+          (containerHeight + windowHeight * 0.8)
+        ));
+        
+        // Apply this to horizontal scroll position
+        if (containerRef.current) {
+          containerRef.current.scrollLeft = sectionProgress * (scrollWidth - containerWidth);
+        }
+        
+        // Update active card based on scroll position
+        const newActiveIndex = Math.min(
+          characters.length - 1,
+          Math.floor(sectionProgress * characters.length)
+        );
+        setActiveIndex(newActiveIndex);
+      };
+      
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [isInView, manualScroll, containerWidth, scrollWidth, characters.length]);
+  
+  // Handle when user manually scrolls the container
+  const handleManualScroll = () => {
+    if (!manualScroll) {
+      setManualScroll(true);
+      
+      // Reset after some inactivity
+      const timer = setTimeout(() => {
+        setManualScroll(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  };
+  
+  // Handle hover on a specific card
+  const handleCardHover = (index: number) => {
+    setActiveIndex(index);
+  };
+  
+  return (
+    <div className="relative min-h-[80vh] md:min-h-[100vh] flex flex-col mb-8">
+      <div className="relative py-8">
+        <h2 className="text-4xl md:text-6xl font-cyber font-bold text-center mb-4">
+          <span className="text-cyberred">CAST</span> OF CHARACTERS
+        </h2>
+        
+        {/* Current character details display */}
+        <motion.div 
+          className="w-full max-w-3xl mx-auto px-4 relative z-10"
+          initial={{ opacity: 0, y: 50 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          {characters[activeIndex] && (
+            <div className="flex flex-col items-center text-center mb-8">
+              <motion.h3 
+                className="text-3xl font-cyber text-white mb-2"
+                key={`title-${activeIndex}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {characters[activeIndex].name}
+              </motion.h3>
+              
+              <motion.div 
+                className="text-cyberred font-jp text-lg mb-4"
+                key={`jptitle-${activeIndex}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+              >
+                {characters[activeIndex].japaneseTitle}
+              </motion.div>
+              
+              <motion.div 
+                className="text-gray-300 font-code max-w-xl"
+                key={`desc-${activeIndex}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                {characters[activeIndex].description}
+              </motion.div>
+            </div>
+          )}
+        </motion.div>
+      </div>
+      
+      {/* Horizontal scrolling container */}
+      <div 
+        ref={containerRef}
+        className="flex-grow overflow-x-auto scrollbar-hide pb-8 sticky top-20"
+        onScroll={handleManualScroll}
+        style={{
+          scrollBehavior: manualScroll ? 'auto' : 'smooth',
+          scrollSnapType: 'x mandatory'
+        }}
+      >
+        <div className="flex items-stretch gap-4 px-4 min-w-max">
+          {characters.map((character, index) => {
+            const isActive = index === activeIndex;
+            
+            return (
+              <motion.div
+                key={character.id}
+                className={`flex-shrink-0 rounded-md overflow-hidden cursor-pointer bg-cyberdark2 border-2 ${isActive ? 'border-cyberred' : 'border-cybergray'}`}
+                style={{
+                  width: isActive ? 432 : 100,
+                  scrollSnapAlign: 'start'
+                }}
+                animate={{ 
+                  width: isActive ? 432 : 100,
+                  boxShadow: isActive 
+                    ? '0 0 25px 5px rgba(255, 45, 85, 0.3)' 
+                    : '0 0 0px 0px rgba(255, 45, 85, 0)'
+                }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 30 
+                }}
+                onMouseEnter={() => handleCardHover(index)}
+              >
+                <div className="w-[432px]">
+                  <div className="relative h-[500px] overflow-hidden">
+                    <img 
+                      src={character.imageUrl} 
+                      alt={character.name} 
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Cyberpunk overlay effects */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-cyberdark via-transparent to-transparent opacity-60"></div>
+                    
+                    {/* Glitch overlay effect */}
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-b from-transparent via-cyberred/10 to-transparent mix-blend-overlay opacity-0"
+                      animate={{
+                        opacity: isActive ? [0, 0.7, 0] : 0,
+                        y: isActive ? ['-100%', '100%'] : '0%',
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: isActive ? Infinity : 0,
+                        ease: "linear",
+                        repeatType: "loop"
+                      }}
+                    />
+                    
+                    {/* Scan line */}
+                    {isActive && (
+                      <motion.div 
+                        className="absolute top-0 left-0 w-full h-6 bg-cyberred/20"
+                        initial={{ y: -10 }}
+                        animate={{ y: 500 }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "linear",
+                          repeatType: "loop"
+                        }}
+                      />
+                    )}
+                    
+                    {/* Character info overlay - only fully visible when active */}
+                    <div className="absolute bottom-0 left-0 w-full p-4">
+                      <motion.div 
+                        animate={{ opacity: isActive ? 1 : 0.6 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <h3 className="font-cyber text-2xl text-white mb-1">{character.name}</h3>
+                        <div className="font-jp text-sm text-cyberred mb-1">{character.japaneseTitle}</div>
+                        <div className="font-code text-xs text-gray-400">{character.title}</div>
+                        
+                        {/* Level indicator */}
+                        <div className="mt-4 w-full bg-cyberdark h-1 rounded-full overflow-hidden">
+                          <motion.div 
+                            className="h-full bg-cyberred"
+                            initial={{ width: "0%" }}
+                            animate={{ width: isActive ? "100%" : "30%" }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                          />
+                        </div>
+                        <div className="font-code text-xs text-gray-400 mt-1">{character.level}</div>
+                      </motion.div>
+                    </div>
+                    
+                    {/* Cyberpunk corner elements */}
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-cyberred"></div>
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-cyberred"></div>
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-cyberred"></div>
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-cyberred"></div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+      
+      {/* Progress indicator */}
+      <div className="absolute bottom-0 left-0 w-full px-4 py-2">
+        <div className="w-full max-w-3xl mx-auto bg-cyberdark h-1 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-cyberred"
+            style={{ 
+              width: `${(activeIndex / (characters.length - 1)) * 100}%` 
+            }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+        
+        <div className="flex justify-between font-code text-xs text-gray-500 mt-1">
+          <span>01</span>
+          <span>{characters.length.toString().padStart(2, '0')}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default HorizontalCharacterScroll;

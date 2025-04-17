@@ -244,6 +244,7 @@
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -257,6 +258,16 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #FF4D75;
+}
+
+/* Hide scrollbar for the horizontal scroll component */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 /* Radial gradient backgrounds */

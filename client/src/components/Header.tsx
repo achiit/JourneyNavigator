@@ -50,28 +50,36 @@ const NavItem: React.FC<NavItemProps> = ({ label, japaneseLabel, href, isActive 
   
   // Generate glitching characters
   useEffect(() => {
-    if (!glitchEffect) return;
+    let interval: NodeJS.Timeout | null = null;
     
-    const interval = setInterval(() => {
-      const newChars = [...japaneseChars];
+    if (glitchEffect) {
+      // Create a local copy of characters to mutate without triggering re-renders
+      const origChars = originalText.current.split('');
       
-      // Randomly replace characters
-      for (let i = 0; i < Math.ceil(japaneseChars.length / 3); i++) {
-        const randomIndex = Math.floor(Math.random() * japaneseChars.length);
-        newChars[randomIndex] = japaneseCharPool.charAt(Math.floor(Math.random() * japaneseCharPool.length));
-      }
-      
-      setJapaneseChars(newChars);
-    }, 50);
+      interval = setInterval(() => {
+        const newChars = [...origChars];
+        
+        // Randomly replace characters
+        for (let i = 0; i < Math.ceil(origChars.length / 3); i++) {
+          const randomIndex = Math.floor(Math.random() * origChars.length);
+          newChars[randomIndex] = japaneseCharPool.charAt(Math.floor(Math.random() * japaneseCharPool.length));
+        }
+        
+        setJapaneseChars(newChars);
+      }, 50);
+    }
     
     return () => {
-      clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
+      
       // Reset to original after glitch effect
-      if (!isHovered) {
+      if (!isHovered && !glitchEffect) {
         setJapaneseChars(originalText.current.split(''));
       }
     };
-  }, [glitchEffect, japaneseChars]);
+  }, [glitchEffect, isHovered]);
   
   return (
     <li className="relative">

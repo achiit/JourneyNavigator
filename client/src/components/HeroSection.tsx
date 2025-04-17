@@ -6,7 +6,7 @@ const HeroSection: React.FC = () => {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [videoContainer, animateVideoContainer] = useAnimate();
+  const [contentContainer, animateContentContainer] = useAnimate();
   const isInView = useInView(containerRef, { once: false, amount: 0.3 });
   
   // Simulate video load
@@ -18,10 +18,10 @@ const HeroSection: React.FC = () => {
     }
   }, []);
   
-  // Animate video container when in view
+  // Animate UI elements when in view
   useEffect(() => {
     if (isInView) {
-      animateVideoContainer([
+      animateContentContainer([
         [".corner-tl", { opacity: 1, x: 0, y: 0 }, { duration: 0.5, ease: "easeOut" }],
         [".corner-tr", { opacity: 1, x: 0, y: 0 }, { duration: 0.5, ease: "easeOut", delay: 0.1 }],
         [".corner-bl", { opacity: 1, x: 0, y: 0 }, { duration: 0.5, ease: "easeOut", delay: 0.2 }],
@@ -30,12 +30,60 @@ const HeroSection: React.FC = () => {
         [".data-overlay", { opacity: 1 }, { duration: 0.8, delay: 0.8 }],
       ]);
     }
-  }, [isInView, animateVideoContainer]);
+  }, [isInView, animateContentContainer]);
 
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden" ref={containerRef}>
-      <div className="container mx-auto px-4 md:px-8 py-16 relative z-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <section className="relative min-h-[100vh] flex items-center overflow-hidden" ref={containerRef}>
+      {/* Full screen video background */}
+      <div className="absolute inset-0 bg-cyberdark z-0">
+        <video 
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+        >
+          <source src="https://cdn.coverr.co/videos/coverr-futuristic-space-city-3447/1080p.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* Video overlay layers */}
+        <div className="absolute inset-0 bg-gradient-to-t from-cyberdark via-cyberdark/60 to-cyberdark/10 z-10"></div>
+        <div className="absolute inset-0 bg-cyberdark/40 z-10"></div>
+        
+        {/* Animated scan line */}
+        <motion.div 
+          className="absolute top-0 left-0 w-full h-4 bg-cyberred/20 z-20"
+          animate={{ 
+            y: [0, 1000, 0],
+          }}
+          transition={{ 
+            duration: 10, 
+            repeat: Infinity,
+            ease: "linear",
+            repeatType: "loop"
+          }}
+        />
+        
+        {/* Horizontal scan lines */}
+        <div className="absolute inset-0 z-20" style={{ 
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
+          pointerEvents: 'none',
+          mixBlendMode: 'overlay' 
+        }}></div>
+        
+        {/* Digital noise effect */}
+        <div className="absolute inset-0 opacity-10 z-20 pointer-events-none noise-overlay"></div>
+      </div>
+      
+      {/* Content container */}
+      <div className="container mx-auto px-4 md:px-8 py-16 relative z-30">
+        <motion.div 
+          ref={contentContainer}
+          className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
+        >
+          {/* Left content - Title and buttons */}
           <motion.div 
             className="space-y-8"
             initial={{ x: -100, opacity: 0 }}
@@ -43,30 +91,51 @@ const HeroSection: React.FC = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <div className="space-y-4">
-              <motion.h2 
-                className="text-5xl md:text-7xl font-bold font-cyber text-white leading-tight"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              >
-                <span className="text-cyberred">CYBER</span>PUNK<br />
-                <span className="relative inline-block">
-                  REVOLUTION
-                  <motion.span 
-                    className="absolute -top-1 left-0 w-full h-[1px] bg-cyberred opacity-70"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.7, duration: 0.6 }}
-                  />
-                  <motion.span 
-                    className="absolute -bottom-1 left-0 w-full h-[1px] bg-cyberred opacity-70"
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.9, duration: 0.6 }}
-                  />
-                </span>
-              </motion.h2>
+              {/* Title with animations */}
+              <div className="relative">
+                <motion.h2 
+                  className="text-5xl md:text-7xl font-bold font-cyber text-white leading-tight"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.8 }}
+                >
+                  <span className="text-cyberred">CYBER</span>PUNK<br />
+                  <span className="relative inline-block">
+                    REVOLUTION
+                    <motion.span 
+                      className="absolute -top-1 left-0 w-full h-[1px] bg-cyberred opacity-70"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.7, duration: 0.6 }}
+                    />
+                    <motion.span 
+                      className="absolute -bottom-1 left-0 w-full h-[1px] bg-cyberred opacity-70"
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ delay: 0.9, duration: 0.6 }}
+                    />
+                  </span>
+                </motion.h2>
+                
+                {/* Cyberpunk corner decorative elements */}
+                <motion.div 
+                  className="corner-tl absolute -top-4 -left-4 w-16 h-16 opacity-0"
+                  initial={{ x: -10, y: -10 }}
+                >
+                  <div className="absolute top-0 left-0 w-full h-[2px] bg-cyberred"></div>
+                  <div className="absolute top-0 left-0 h-full w-[2px] bg-cyberred"></div>
+                </motion.div>
+                
+                <motion.div 
+                  className="corner-br absolute -bottom-4 -right-4 w-16 h-16 opacity-0"
+                  initial={{ x: 10, y: 10 }}
+                >
+                  <div className="absolute bottom-0 right-0 w-full h-[2px] bg-cyberred"></div>
+                  <div className="absolute bottom-0 right-0 h-full w-[2px] bg-cyberred"></div>
+                </motion.div>
+              </div>
               
+              {/* Description text */}
               <motion.p 
                 className="text-lg md:text-xl font-code text-gray-300 max-w-xl"
                 initial={{ opacity: 0 }}
@@ -77,213 +146,187 @@ const HeroSection: React.FC = () => {
               </motion.p>
             </div>
             
+            {/* Action buttons */}
             <motion.div 
               className="flex flex-wrap gap-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.8 }}
             >
-              <CyberButton japaneseText="探索する" pulseGlow>
+              <CyberButton japaneseText="探索する" primary>
                 EXPLORE
               </CyberButton>
               
-              <CyberButton japaneseText="参加する" primary>
+              <CyberButton japaneseText="参加する">
                 JOIN NOW
               </CyberButton>
             </motion.div>
           </motion.div>
           
+          {/* Right content - Data terminal display */}
           <motion.div 
-            ref={videoContainer}
             className="relative"
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
           >
-            {/* Video container with cyberpunk styling */}
-            <div className="aspect-video relative bg-cyberdark2 border-2 border-cybergray overflow-hidden">
-              {/* Main video */}
-              <video 
-                ref={videoRef}
-                className="w-full h-full object-cover object-center"
-                autoPlay
-                muted
-                loop
-                playsInline
-              >
-                <source src="https://cdn.coverr.co/videos/coverr-pssht-2022-4399/1080p.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              
-              {/* Overlay gradient */}
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-cyberdark via-transparent to-transparent opacity-80"></div>
-              
-              {/* Cyberpunk overlay effects */}
-              <motion.div 
-                className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1, duration: 1 }}
-              >
-                {/* Red scan line */}
-                <motion.div 
-                  className="scan-line absolute top-0 left-0 w-full h-4 bg-cyberred/30 opacity-0 z-30"
-                  animate={{ 
-                    y: [0, 500, 0],
-                  }}
-                  transition={{ 
-                    duration: 6, 
-                    repeat: Infinity,
-                    ease: "linear",
-                    repeatType: "loop"
-                  }}
-                />
-                
-                {/* Data overlay - appears after video loads */}
-                <motion.div 
-                  className="data-overlay absolute bottom-0 left-0 w-full p-4 opacity-0"
-                  initial={{ y: 20 }}
-                  animate={{ y: 0 }}
-                >
+            <div className="relative bg-cyberdark2/80 border-2 border-cybergray rounded-sm overflow-hidden backdrop-blur-sm p-6">
+              {/* Data display upper section */}
+              <div className="border-b border-cybergray pb-4 mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="font-cyber text-xl text-cyberred">SYSTEM STATUS</div>
                   <div className="flex items-center gap-2">
-                    <motion.div 
-                      className="w-3 h-3 bg-cyberred rounded-full"
-                      animate={{ 
-                        opacity: [0.5, 1, 0.5],
-                        scale: [1, 1.2, 1]
-                      }}
-                      transition={{ 
-                        duration: 2, 
-                        repeat: Infinity,
-                        ease: "easeInOut" 
-                      }}
-                    />
-                    <div className="font-code text-sm text-gray-300">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-cyberred">REC</span>
-                        <span className="animate-pulse">●</span>
-                        <span>LIVE_FEED//SECTOR-09</span>
-                      </div>
-                      <div className="mt-1 text-xs opacity-70">
-                        <motion.span
-                          animate={{
-                            opacity: [1, 0.5, 1]
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "linear"
-                          }}
-                        >
-                          SIGNAL_STRENGTH: 87% | ENCRYPTION: ACTIVE
-                        </motion.span>
-                      </div>
-                    </div>
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div className="text-xs font-code text-green-500">ONLINE</div>
                   </div>
-                </motion.div>
+                </div>
                 
-                {/* Frame corners with red border effects */}
-                <motion.div 
-                  className="corner-tl absolute top-0 left-0 w-16 h-16 opacity-0"
-                  initial={{ x: -10, y: -10 }}
+                <div className="grid grid-cols-2 gap-4 font-code text-sm">
+                  <div>
+                    <div className="text-gray-500">LOCATION</div>
+                    <div className="text-white">NEO-TOKYO SECTOR 9</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">TIME</div>
+                    <motion.div 
+                      className="text-white"
+                      animate={{ opacity: [1, 0.7, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      23:59:01
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Data display scrolling section */}
+              <div className="font-code text-xs text-gray-300 h-48 overflow-hidden relative">
+                <motion.div
+                  animate={{ y: [-480, 0] }}
+                  transition={{ duration: 15, repeat: Infinity, repeatType: "loop" }}
                 >
-                  <div className="absolute top-0 left-0 w-full h-[3px] bg-cyberred"></div>
-                  <div className="absolute top-0 left-0 h-full w-[3px] bg-cyberred"></div>
+                  {Array.from({ length: 30 }).map((_, i) => (
+                    <div key={i} className="flex mb-2">
+                      <span className="text-cyberred mr-2">[{(i + 1).toString().padStart(2, '0')}]</span>
+                      <span>
+                        {i % 5 === 0 ? (
+                          <span className="text-cyberblue">SYSTEM: Quantum encryption active. Neural interface synced.</span>
+                        ) : i % 4 === 0 ? (
+                          <span className="text-yellow-500">WARNING: Unauthorized access attempts detected in sector 7G.</span>
+                        ) : i % 3 === 0 ? (
+                          <span className="text-green-500">ANALYSIS: Biodata scanning complete. Identity confirmed.</span>
+                        ) : (
+                          <span>Connection established to mainframe. Data transfer at 98.7%.</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
                 </motion.div>
                 
-                <motion.div 
-                  className="corner-tr absolute top-0 right-0 w-16 h-16 opacity-0"
-                  initial={{ x: 10, y: -10 }}
-                >
-                  <div className="absolute top-0 right-0 w-full h-[3px] bg-cyberred"></div>
-                  <div className="absolute top-0 right-0 h-full w-[3px] bg-cyberred"></div>
-                </motion.div>
-                
-                <motion.div 
-                  className="corner-bl absolute bottom-0 left-0 w-16 h-16 opacity-0"
-                  initial={{ x: -10, y: 10 }}
-                >
-                  <div className="absolute bottom-0 left-0 w-full h-[3px] bg-cyberred"></div>
-                  <div className="absolute bottom-0 left-0 h-full w-[3px] bg-cyberred"></div>
-                </motion.div>
-                
-                <motion.div 
-                  className="corner-br absolute bottom-0 right-0 w-16 h-16 opacity-0"
-                  initial={{ x: 10, y: 10 }}
-                >
-                  <div className="absolute bottom-0 right-0 w-full h-[3px] bg-cyberred"></div>
-                  <div className="absolute bottom-0 right-0 h-full w-[3px] bg-cyberred"></div>
-                </motion.div>
-                
-                {/* Noise overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyberred/5 to-transparent mix-blend-overlay"></div>
-                
-                {/* Horizontal scan lines */}
-                <div className="absolute inset-0" style={{ 
-                  backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 4px)',
-                  pointerEvents: 'none',
-                  mixBlendMode: 'overlay' 
-                }}></div>
+                {/* Fading overlay for scrolling text */}
+                <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-cyberdark2/80 to-transparent"></div>
+              </div>
+              
+              {/* Interactive data terminal */}
+              <div className="mt-4 pt-4 border-t border-cybergray">
+                <div className="flex items-center space-x-2 font-code text-xs">
+                  <span className="text-cyberblue">root@cybernomad:~$</span>
+                  <motion.span 
+                    className="text-white"
+                    animate={{ opacity: [1, 0, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    _
+                  </motion.span>
+                </div>
+              </div>
+              
+              {/* Corner elements with scan effect */}
+              <motion.div 
+                className="corner-tl absolute top-0 left-0 w-16 h-16 opacity-0"
+                initial={{ x: -10, y: -10 }}
+              >
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-cyberred"></div>
+                <div className="absolute top-0 left-0 h-full w-[2px] bg-cyberred"></div>
               </motion.div>
+              
+              <motion.div 
+                className="corner-tr absolute top-0 right-0 w-16 h-16 opacity-0"
+                initial={{ x: 10, y: -10 }}
+              >
+                <div className="absolute top-0 right-0 w-full h-[2px] bg-cyberred"></div>
+                <div className="absolute top-0 right-0 h-full w-[2px] bg-cyberred"></div>
+              </motion.div>
+              
+              <motion.div 
+                className="corner-bl absolute bottom-0 left-0 w-16 h-16 opacity-0"
+                initial={{ x: -10, y: 10 }}
+              >
+                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-cyberred"></div>
+                <div className="absolute bottom-0 left-0 h-full w-[2px] bg-cyberred"></div>
+              </motion.div>
+              
+              <motion.div 
+                className="corner-br absolute bottom-0 right-0 w-16 h-16 opacity-0"
+                initial={{ x: 10, y: 10 }}
+              >
+                <div className="absolute bottom-0 right-0 w-full h-[2px] bg-cyberred"></div>
+                <div className="absolute bottom-0 right-0 h-full w-[2px] bg-cyberred"></div>
+              </motion.div>
+              
+              {/* Moving scan line */}
+              <motion.div 
+                className="scan-line absolute top-0 left-0 w-full h-4 bg-cyberred/10 opacity-0 z-10"
+                animate={{ 
+                  y: [0, 350, 0],
+                }}
+                transition={{ 
+                  duration: 4, 
+                  repeat: Infinity,
+                  ease: "linear",
+                  repeatType: "loop"
+                }}
+              />
             </div>
-            
-            {/* Decorative outer elements */}
-            <motion.div 
-              className="absolute -bottom-8 -right-8 w-32 h-32"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.5 }}
-            >
-              <div className="absolute bottom-0 right-0 w-full h-[2px] bg-cyberred"></div>
-              <div className="absolute bottom-0 right-0 h-full w-[2px] bg-cyberred"></div>
-            </motion.div>
-            
-            <motion.div 
-              className="absolute -top-8 -left-8 w-32 h-32"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.5 }}
-            >
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-cyberred"></div>
-              <div className="absolute top-0 left-0 h-full w-[2px] bg-cyberred"></div>
-            </motion.div>
-            
-            {/* Tech data display */}
-            <motion.div 
-              className="absolute -right-4 top-1/4 bg-cyberdark2 border border-cybergray p-2 font-code text-xs text-cyberred"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 0.8, x: 0 }}
-              transition={{ delay: 1.5, duration: 0.5 }}
-            >
-              <div>FPS: 60</div>
-              <div>RES: 1080p</div>
-            </motion.div>
-            
-            <motion.div 
-              className="absolute -left-4 bottom-1/4 bg-cyberdark2 border border-cybergray p-2 font-code text-xs text-cyberred"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 0.8, x: 0 }}
-              transition={{ delay: 1.7, duration: 0.5 }}
-            >
-              <div className="font-jp">ビデオフィード</div>
-              <div>ID: CYB-9873</div>
-            </motion.div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
+      
+      {/* Data readout elements */}
+      <motion.div 
+        className="data-overlay absolute bottom-8 left-8 bg-cyberdark2/80 border border-cybergray p-2 font-code text-xs opacity-0 z-30"
+        initial={{ y: 20 }}
+        animate={{ y: 0 }}
+      >
+        <div className="flex items-center gap-2">
+          <motion.div 
+            className="w-2 h-2 bg-cyberred rounded-full"
+            animate={{ 
+              opacity: [0.5, 1, 0.5]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+          />
+          <div className="text-gray-300">
+            NEURAL_LINK: <span className="text-cyberred">ACTIVE</span>
+          </div>
+        </div>
+      </motion.div>
       
       {/* Background decorative elements */}
       <motion.div 
-        className="absolute top-20 right-[5%] w-40 h-40 border border-cyberred/20 transform rotate-45"
+        className="absolute top-[20%] right-[5%] w-32 h-32 border border-cyberred/20 transform rotate-45 z-20"
         animate={{ rotate: 90 }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
       />
       <motion.div 
-        className="absolute bottom-20 left-[10%] w-60 h-60 border border-cyberred/20 transform -rotate-12"
+        className="absolute bottom-[20%] left-[5%] w-48 h-48 border border-cyberred/20 transform -rotate-12 z-20"
         animate={{ rotate: -372 }}
         transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
       />
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-radial from-cyberred/5 to-transparent rounded-full blur-xl"></div>
     </section>
   );
 };
