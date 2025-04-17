@@ -36,6 +36,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize the server
 (async () => {
   const server = await registerRoutes(app);
 
@@ -56,15 +57,18 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  // In production on Vercel, the platform handles the port binding
+  // Only bind to a port in development or when not on Vercel
+  if (process.env.VERCEL !== "1") {
+    const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
+    server.listen({
+      port,
+      host: "0.0.0.0",
+    }, () => {
+      log(`serving on port ${port}`);
+    });
+  }
 })();
+
+// Export the Express app for serverless environments like Vercel
+export default app;

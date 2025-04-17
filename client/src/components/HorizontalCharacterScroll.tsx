@@ -7,12 +7,15 @@ interface HorizontalCharacterScrollProps {
 }
 
 const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ characters }) => {
+  const sectionRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: false, amount: 0.2 });
   const [activeIndex, setActiveIndex] = useState(0);
   const [manualScroll, setManualScroll] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [scrollWidth, setScrollWidth] = useState(0);
+  const [isSticky, setIsSticky] = useState(false);
+  const [hasCompletedScroll, setHasCompletedScroll] = useState(false);
   
   // Initial setup to get dimensions
   useEffect(() => {
@@ -31,48 +34,51 @@ const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ c
     window.addEventListener('resize', updateDimensions);
     
     return () => {
-      window.addEventListener('resize', updateDimensions);
+      window.removeEventListener('resize', updateDimensions);
     };
   }, []);
   
-  // Get scroll position from container
-  const { scrollXProgress } = useScroll({
-    container: containerRef
-  });
-  
-  // Make scroll proportional to viewport scrolling
+  // Handle sticky behavior and horizontal scrolling based on vertical scroll
   useEffect(() => {
-    if (!manualScroll && containerRef.current && isInView) {
-      const handleScroll = () => {
-        // Get viewport scroll position
-        const scrollY = window.scrollY;
-        const windowHeight = window.innerHeight;
-        const containerTop = containerRef.current!.getBoundingClientRect().top + window.scrollY;
-        const containerHeight = containerRef.current!.offsetHeight;
-        
-        // Calculate how far through the section we've scrolled (0 to 1)
-        const sectionProgress = Math.max(0, Math.min(1, 
-          (scrollY - containerTop + windowHeight * 0.8) / 
-          (containerHeight + windowHeight * 0.8)
-        ));
-        
-        // Apply this to horizontal scroll position
-        if (containerRef.current) {
-          containerRef.current.scrollLeft = sectionProgress * (scrollWidth - containerWidth);
-        }
-        
-        // Update active card based on scroll position
-        const newActiveIndex = Math.min(
-          characters.length - 1,
-          Math.floor(sectionProgress * characters.length)
-        );
-        setActiveIndex(newActiveIndex);
-      };
+    const handleScroll = () => {
+      if (!sectionRef.current || !containerRef.current) return;
       
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, [isInView, manualScroll, containerWidth, scrollWidth, characters.length]);
+      const scrollY = window.scrollY;
+      const sectionTop = sectionRef.current.getBoundingClientRect().top + window.scrollY;
+      const sectionHeight = sectionRef.current.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      const containerHeight = containerRef.current.offsetHeight;
+      
+      // Calculate when to make the container sticky
+      if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight - containerHeight) {
+        setIsSticky(true);
+        
+        // Calculate horizontal scroll progress (0 to 1)
+        const scrollProgress = (scrollY - sectionTop) / (sectionHeight - containerHeight - viewportHeight * 0.5);
+        const clampedProgress = Math.max(0, Math.min(1, scrollProgress));
+        
+        // Apply horizontal scroll based on vertical scroll position
+        if (!manualScroll) {
+          containerRef.current.scrollLeft = clampedProgress * (scrollWidth - containerWidth);
+          
+          // Update active card based on scroll position
+          const newActiveIndex = Math.min(
+            characters.length - 1,
+            Math.floor(clampedProgress * characters.length)
+          );
+          setActiveIndex(newActiveIndex);
+          
+          // Check if we've completed scrolling through all characters
+          setHasCompletedScroll(clampedProgress >= 0.95);
+        }
+      } else {
+        setIsSticky(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [manualScroll, containerWidth, scrollWidth, characters.length]);
   
   // Handle when user manually scrolls the container
   const handleManualScroll = () => {
@@ -94,8 +100,12 @@ const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ c
   };
   
   return (
-    <div className="relative min-h-[80vh] md:min-h-[100vh] flex flex-col mb-8">
-      <div className="relative py-8">
+    <div 
+      ref={sectionRef}
+      className="relative min-h-[250vh] mb-38 pt-4" 
+    >
+      {/* Header section - will be sticky */}
+      <div className={`${isSticky ? 'fixed top-32 left-0 right-0 z-30' : 'relative'}`}>
         <h2 className="text-4xl md:text-6xl font-cyber font-bold text-center mb-4">
           <span className="text-cyberred">CAST</span> OF CHARACTERS
         </h2>
@@ -104,11 +114,11 @@ const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ c
         <motion.div 
           className="w-full max-w-3xl mx-auto px-4 relative z-10"
           initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           {characters[activeIndex] && (
-            <div className="flex flex-col items-center text-center mb-8">
+            <div className="flex flex-col items-center text-center mb-12">
               <motion.h3 
                 className="text-3xl font-cyber text-white mb-2"
                 key={`title-${activeIndex}`}
@@ -146,17 +156,22 @@ const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ c
         </motion.div>
       </div>
       
+      {/* Spacer for the header when it becomes sticky */}
+      {isSticky && <div className="h-[250px]"></div>}
+      
       {/* Horizontal scrolling container */}
       <div 
         ref={containerRef}
-        className="flex-grow overflow-x-auto scrollbar-hide pb-8 sticky top-20"
+        className={`overflow-x-auto scrollbar-hide pb-8 ${isSticky ? 'fixed top-[420px] left-0 right-0' : 'relative mt-16'}`}
         onScroll={handleManualScroll}
         style={{
           scrollBehavior: manualScroll ? 'auto' : 'smooth',
-          scrollSnapType: 'x mandatory'
+          scrollSnapType: 'x mandatory',
+          height: '70vh',
+          zIndex: 20
         }}
       >
-        <div className="flex items-stretch gap-4 px-4 min-w-max">
+        <div className="flex items-stretch gap-4 px-4 min-w-max justify-center">
           {characters.map((character, index) => {
             const isActive = index === activeIndex;
             
@@ -258,8 +273,11 @@ const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ c
         </div>
       </div>
       
+      {/* Spacer div to maintain scroll height when container becomes fixed */}
+      {isSticky && <div style={{ height: '70vh' }}></div>}
+      
       {/* Progress indicator */}
-      <div className="absolute bottom-0 left-0 w-full px-4 py-2">
+      <div className={`${isSticky ? 'fixed bottom-4' : 'absolute bottom-0'} left-0 w-full px-4 py-2 z-30`}>
         <div className="w-full max-w-3xl mx-auto bg-cyberdark h-1 rounded-full overflow-hidden">
           <motion.div 
             className="h-full bg-cyberred"
@@ -275,6 +293,28 @@ const HorizontalCharacterScroll: React.FC<HorizontalCharacterScrollProps> = ({ c
           <span>{characters.length.toString().padStart(2, '0')}</span>
         </div>
       </div>
+      
+      {/* Scroll indicator that appears when horizontal scroll is complete */}
+      {hasCompletedScroll && (
+        <motion.div 
+          className={`${isSticky ? 'fixed' : 'absolute'} bottom-16 left-0 w-full text-center z-30`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: [0, -5, 0] }}
+          transition={{ 
+            y: { repeat: Infinity, duration: 1.5 },
+            opacity: { duration: 0.5 }
+          }}
+        >
+          <div className="font-cyber text-cyberred text-sm">
+            SCROLL DOWN TO CONTINUE
+            <div className="mx-auto w-4 h-4 mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12l7 7 7-7" />
+              </svg>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'wouter';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 
 const navItems = [
   { label: 'HOME', japaneseLabel: 'ホーム', href: '/' },
@@ -224,13 +225,20 @@ const LogoText: React.FC = () => {
 
 const Header: React.FC = () => {
   const [location] = useLocation();
+  const { scrollY } = useScroll();
+  
+  // Transform scrollY to opacity and y position values
+  const headerOpacity = useTransform(scrollY, [0, 100], [0, 1]);
+  const headerY = useTransform(scrollY, [0, 100], [-100, 0]);
   
   return (
     <motion.header 
-      className="relative py-6 px-4 md:px-8 lg:px-16 border-b border-cybergray z-50"
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="fixed top-0 left-0 right-0 py-6 px-4 md:px-8 lg:px-16 border-b border-cybergray z-50 bg-cyberdark/90 backdrop-blur-sm"
+      style={{ 
+        opacity: headerOpacity,
+        y: headerY,
+      }}
+      transition={{ duration: 0.3 }}
     >
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
         <div className="flex items-center mb-4 md:mb-0">
