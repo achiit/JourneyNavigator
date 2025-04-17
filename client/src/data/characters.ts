@@ -44,5 +44,32 @@ export const characters: Character[] = [
     level: "Medical Level: 98",
     description: "Specialized in combat nanomedicine and field repairs of cybernetic implants during missions.",
     imageUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=700&q=80"
+  },
+  {
+    id: 5,
+    name: "PHANTOM",
+    japaneseTitle: "ゴースト・インフィルトレーター",
+    title: "Ghost Infiltrator",
+    level: "Stealth Level: 99",
+    description: "Equipped with cutting-edge optical camouflage and sound dampening tech for perfect infiltration missions.",
+    imageUrl: "https://images.unsplash.com/photo-1542103749-8ef59b94f47e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1350&q=80"
+  },
+  {
+    id: 6,
+    name: "VOLT",
+    japaneseTitle: "サンダー・コンダクター",
+    title: "Thunder Conductor",
+    level: "Power Level: 94",
+    description: "Bio-engineered nervous system capable of generating and channeling massive electrical surges as weapons.",
+    imageUrl: "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=635&q=80"
+  },
+  {
+    id: 7,
+    name: "NOVA",
+    japaneseTitle: "サイコ・ブラスター",
+    title: "Psycho Blaster",
+    level: "Psionic Level: 96",
+    description: "Rare psychic mutation enhanced with cerebral implants allowing telekinetic assaults and mind manipulation.",
+    imageUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=634&q=80"
   }
 ];

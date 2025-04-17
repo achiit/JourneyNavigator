@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface CyberButtonProps {
@@ -9,6 +9,7 @@ interface CyberButtonProps {
   onClick?: () => void;
   primary?: boolean;
   pulseGlow?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 const CyberButton: React.FC<CyberButtonProps> = ({ 
@@ -17,64 +18,101 @@ const CyberButton: React.FC<CyberButtonProps> = ({
   japaneseText, 
   onClick, 
   primary = false,
-  pulseGlow = false
+  pulseGlow = false,
+  type = "button"
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const japaneseRef = useRef<HTMLSpanElement>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showJapanese, setShowJapanese] = useState(true);
+  const [isGlitching, setIsGlitching] = useState(false);
+  const [japaneseChars, setJapaneseChars] = useState<string[]>([]);
   const originalText = useRef<string>(japaneseText);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Japanese character pool for cycling
   const japaneseCharPool = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヰヱヲン';
   
-  // Function to randomly replace characters
-  const cycleCharacters = () => {
-    if (!japaneseRef.current) return;
+  // Initialize Japanese characters array
+  useEffect(() => {
+    setJapaneseChars(originalText.current.split(''));
+  }, [japaneseText]);
+  
+  // Function to create glitch effect
+  const glitchCharacters = () => {
+    const newChars = [...japaneseChars];
     
-    const chars = originalText.current.split('');
-    
-    // 20% chance to change a character
-    if (Math.random() > 0.8) {
-      const randomIndex = Math.floor(Math.random() * chars.length);
-      chars[randomIndex] = japaneseCharPool.charAt(Math.floor(Math.random() * japaneseCharPool.length));
-      japaneseRef.current.textContent = chars.join('');
-    } else {
-      japaneseRef.current.textContent = originalText.current;
+    // Replace random characters with glitched ones
+    for (let i = 0; i < Math.floor(japaneseChars.length / 2); i++) {
+      const randomIndex = Math.floor(Math.random() * japaneseChars.length);
+      newChars[randomIndex] = japaneseCharPool.charAt(Math.floor(Math.random() * japaneseCharPool.length));
     }
+    
+    setJapaneseChars(newChars);
   };
   
-  // Start character cycling when component mounts
+  // Handle hover transition
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered) {
+      // Start glitch effect
+      setIsGlitching(true);
+      
+      // Schedule transition to English text
+      timeoutRef.current = setTimeout(() => {
+        setShowJapanese(false);
+        setIsGlitching(false);
+      }, 400);
+    } else {
+      // Clear any pending timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      // If switching back from English
+      if (!showJapanese) {
+        setIsGlitching(true);
+        
+        // Reset characters and show Japanese again after brief delay
+        timeoutRef.current = setTimeout(() => {
+          setJapaneseChars(originalText.current.split(''));
+          setShowJapanese(true);
+          setIsGlitching(false);
+        }, 400);
+      }
+    }
     
-    intervalRef.current = setInterval(cycleCharacters, 200);
-    
-    // Cleanup interval on unmount
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, [isHovered]);
   
+  // Glitching effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isGlitching) {
+      interval = setInterval(glitchCharacters, 50);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isGlitching, japaneseChars]);
+  
   // Handle hover states
   const handleMouseEnter = () => {
     setIsHovered(true);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
   };
   
   const handleMouseLeave = () => {
     setIsHovered(false);
-    intervalRef.current = setInterval(cycleCharacters, 200);
   };
   
   return (
     <motion.button
+      type={type}
       className={cn(
-        "cyber-button relative overflow-hidden transition-all duration-300",
+        "cyber-button relative overflow-hidden",
         primary ? "bg-cyberred" : "bg-cyberdark2 border border-cyberred",
         pulseGlow ? "animate-pulse-glow" : "",
         "text-white font-cyber uppercase px-8 py-4 rounded-sm", 
@@ -84,49 +122,108 @@ const CyberButton: React.FC<CyberButtonProps> = ({
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       whileHover={{ 
+        scale: 1.03,
         boxShadow: primary 
           ? "0 0 25px 5px rgba(255, 45, 85, 0.6)" 
           : "0 0 15px 2px rgba(255, 45, 85, 0.4)"
       }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }}
     >
-      <div className="btn-glitch absolute top-0 left-0 w-full h-full bg-cyberred/10 opacity-0 mix-blend-screen z-5 group-hover:opacity-100"></div>
-      
-      <motion.span 
-        className="btn-text-jp absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center font-jp z-2"
-        ref={japaneseRef}
-        initial={{ opacity: 1 }}
+      {/* Glitch overlay effect */}
+      <motion.div 
+        className="absolute inset-0 bg-cyberred/10 mix-blend-screen z-10 pointer-events-none"
+        initial={{ opacity: 0, scaleX: 0 }}
         animate={{ 
-          opacity: isHovered ? 0 : 1,
-          scale: isHovered ? 1.05 : 1,
-          x: isHovered ? "-52%" : "-50%",
-          y: isHovered ? "-48%" : "-50%", 
+          opacity: isGlitching ? [0, 0.8, 0] : 0,
+          scaleX: isGlitching ? [0, 1, 0] : 0,
+          x: isGlitching ? ["-100%", "100%"] : "0%"
         }}
         transition={{ 
           duration: 0.4,
-          ease: [0.16, 1, 0.3, 1],
+          ease: "easeInOut",
+          times: [0, 0.5, 1]
         }}
-      >
-        {japaneseText}
-      </motion.span>
+      />
       
-      <motion.span 
-        className="btn-text-en relative z-3 opacity-0"
-        initial={{ opacity: 0, scale: 0.8, y: 5 }}
+      <motion.div 
+        className="absolute inset-0 bg-cyberblue/10 mix-blend-screen z-10 pointer-events-none"
+        initial={{ opacity: 0, scaleY: 0 }}
         animate={{ 
-          opacity: isHovered ? 1 : 0,
-          scale: isHovered ? 1 : 0.8,
-          y: isHovered ? 0 : 5 
+          opacity: isGlitching ? [0, 0.8, 0] : 0,
+          scaleY: isGlitching ? [0, 1, 0] : 0,
+          y: isGlitching ? ["-100%", "100%"] : "0%"
+        }}
+        transition={{ 
+          duration: 0.3,
+          ease: "easeInOut",
+          times: [0, 0.5, 1]
+        }}
+      />
+      
+      {/* Text container */}
+      <div className="relative">
+        <AnimatePresence initial={false}>
+          {showJapanese ? (
+            <motion.div
+              key="japanese"
+              className="flex justify-center items-center space-x-1 font-jp"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {japaneseChars.map((char, index) => (
+                <motion.span 
+                  key={`${index}-${char}`}
+                  initial={{ y: 0 }}
+                  animate={{ 
+                    y: isGlitching ? [0, -4, 2, 0] : 0,
+                    opacity: isGlitching ? [1, 0.7, 1] : 1,
+                    scale: isGlitching ? [1, 1.1, 0.9, 1] : 1,
+                    color: isGlitching ? ["#ffffff", "#FF2D55", "#00F0FF", "#ffffff"] : "#ffffff"
+                  }}
+                  transition={{ 
+                    duration: 0.3,
+                    delay: index * 0.03
+                  }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="english"
+              className="flex justify-center items-center font-cyber tracking-wider"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {children}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      
+      {/* Visual scan line effect */}
+      <motion.div 
+        className="absolute left-0 w-full h-[2px] bg-cyberred/60 mix-blend-overlay pointer-events-none"
+        style={{ top: "50%" }}
+        initial={{ scaleX: 0 }}
+        animate={{ 
+          scaleX: isHovered ? [0, 1, 1, 0] : 0,
+          x: isHovered ? ["-100%", "0%", "0%", "100%"] : "0%"
         }}
         transition={{ 
           duration: 0.4,
-          ease: [0.16, 1, 0.3, 1],
+          times: [0, 0.3, 0.7, 1]
         }}
-      >
-        {children}
-      </motion.span>
-      
-      {/* Hidden span to maintain button size */}
-      <span className="opacity-0">{children}</span>
+      />
     </motion.button>
   );
 };
