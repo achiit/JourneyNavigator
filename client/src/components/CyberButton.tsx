@@ -22,7 +22,6 @@ const CyberButton: React.FC<CyberButtonProps> = ({
   type = "button"
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [showJapanese, setShowJapanese] = useState(true);
   const [isGlitching, setIsGlitching] = useState(false);
   const [japaneseChars, setJapaneseChars] = useState<string[]>([]);
   const originalText = useRef<string>(japaneseText);
@@ -55,28 +54,19 @@ const CyberButton: React.FC<CyberButtonProps> = ({
       // Start glitch effect
       setIsGlitching(true);
       
-      // Schedule transition to English text
+      // Schedule end of glitch effect
       timeoutRef.current = setTimeout(() => {
-        setShowJapanese(false);
         setIsGlitching(false);
       }, 400);
     } else {
       // Clear any pending timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        setIsGlitching(false);
       }
       
-      // If switching back from English
-      if (!showJapanese) {
-        setIsGlitching(true);
-        
-        // Reset characters and show Japanese again after brief delay
-        timeoutRef.current = setTimeout(() => {
-          setJapaneseChars(originalText.current.split(''));
-          setShowJapanese(true);
-          setIsGlitching(false);
-        }, 400);
-      }
+      // Reset characters
+      setJapaneseChars(originalText.current.split(''));
     }
     
     return () => {
@@ -166,45 +156,38 @@ const CyberButton: React.FC<CyberButtonProps> = ({
       
       {/* Text container */}
       <div className="relative">
-        <AnimatePresence initial={false}>
-          {showJapanese ? (
+        {/* Main text (always English) */}
+        <div className="relative z-10">
+          {children}
+        </div>
+        
+        {/* Japanese text overlay - only appears on hover */}
+        <AnimatePresence>
+          {isHovered && (
             <motion.div
-              key="japanese"
-              className="flex justify-center items-center space-x-1 font-jp"
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 20, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              className="absolute inset-0 flex justify-center items-center space-x-1 font-jp bg-cyberdark2 z-20"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
             >
               {japaneseChars.map((char, index) => (
                 <motion.span 
                   key={`${index}-${char}`}
-                  initial={{ y: 0 }}
                   animate={{ 
-                    y: isGlitching ? [0, -4, 2, 0] : 0,
+                    y: isGlitching ? [0, -3, 1, 0] : 0,
                     opacity: isGlitching ? [1, 0.7, 1] : 1,
                     scale: isGlitching ? [1, 1.1, 0.9, 1] : 1,
                     color: isGlitching ? ["#ffffff", "#FF2D55", "#00F0FF", "#ffffff"] : "#ffffff"
                   }}
                   transition={{ 
                     duration: 0.3,
-                    delay: index * 0.03
+                    delay: index * 0.02
                   }}
                 >
                   {char}
                 </motion.span>
               ))}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="english"
-              className="flex justify-center items-center font-cyber tracking-wider"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {children}
             </motion.div>
           )}
         </AnimatePresence>

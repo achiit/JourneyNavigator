@@ -1,145 +1,519 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'wouter';
 
+// Footer navigation categories
 interface FooterLink {
   label: string;
+  japaneseLabel: string;
   href: string;
 }
 
 const navLinks: FooterLink[] = [
-  { label: 'Home', href: '/' },
-  { label: 'Characters', href: '/characters' },
-  { label: 'World', href: '/world' },
-  { label: 'Factions', href: '/factions' },
-  { label: 'Timeline', href: '/timeline' },
+  { label: 'HOME', japaneseLabel: 'ホーム', href: '/' },
+  { label: 'CHARACTERS', japaneseLabel: 'キャラクター', href: '/characters' },
+  { label: 'WORLD', japaneseLabel: 'ワールド', href: '/world' },
+  { label: 'FACTIONS', japaneseLabel: 'ファクション', href: '/factions' },
+  { label: 'TIMELINE', japaneseLabel: 'タイムライン', href: '/timeline' },
 ];
 
 const resourceLinks: FooterLink[] = [
-  { label: 'Developer Blog', href: '/blog' },
-  { label: 'Patch Notes', href: '/updates' },
-  { label: 'Community Forum', href: '/forum' },
-  { label: 'Support', href: '/support' },
-  { label: 'Media Kit', href: '/media' },
+  { label: 'DEVELOPER BLOG', japaneseLabel: '開発ブログ', href: '/blog' },
+  { label: 'PATCH NOTES', japaneseLabel: 'パッチノート', href: '/updates' },
+  { label: 'COMMUNITY', japaneseLabel: 'コミュニティ', href: '/forum' },
+  { label: 'SUPPORT', japaneseLabel: 'サポート', href: '/support' },
+  { label: 'MEDIA', japaneseLabel: 'メディア', href: '/media' },
 ];
 
 const legalLinks: FooterLink[] = [
-  { label: 'Terms of Service', href: '/terms' },
-  { label: 'Privacy Policy', href: '/privacy' },
-  { label: 'Cookie Policy', href: '/cookies' },
-  { label: 'GDPR Compliance', href: '/gdpr' },
+  { label: 'TERMS', japaneseLabel: '利用規約', href: '/terms' },
+  { label: 'PRIVACY', japaneseLabel: 'プライバシー', href: '/privacy' },
+  { label: 'COOKIES', japaneseLabel: 'クッキー', href: '/cookies' },
+  { label: 'GDPR', japaneseLabel: 'GDPR', href: '/gdpr' },
 ];
 
-const SocialIcon: React.FC<{ path: string; href: string }> = ({ path, href }) => (
-  <a 
-    href={href} 
-    className="text-gray-400 hover:text-cyberred transition-colors" 
-    target="_blank" 
-    rel="noopener noreferrer"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-      <path d={path} />
-    </svg>
-  </a>
-);
+// Social icons with cyber animations
+const CyberSocialIcon: React.FC<{ icon: string; href: string }> = ({ icon, href }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ scale: 1.2 }}
+      transition={{ type: "spring", stiffness: 500, damping: 10 }}
+    >
+      <div className="w-10 h-10 flex items-center justify-center bg-cyberdark rounded-sm border border-cybergray overflow-hidden">
+        <i className={`text-lg ${icon} ${isHovered ? 'text-cyberred' : 'text-gray-400'}`}></i>
+        
+        {/* Scan effect on hover */}
+        {isHovered && (
+          <motion.div 
+            className="absolute top-0 left-0 w-full h-1 bg-cyberred/30"
+            initial={{ y: -10 }}
+            animate={{ y: 15 }}
+            transition={{ duration: 0.8, repeat: Infinity, repeatType: "mirror" }}
+          />
+        )}
+        
+        {/* Corner accents that appear on hover */}
+        <AnimatePresence>
+          {isHovered && (
+            <>
+              <motion.div 
+                className="absolute top-0 left-0 w-3 h-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-cyberred"></div>
+                <div className="absolute top-0 left-0 h-full w-[1px] bg-cyberred"></div>
+              </motion.div>
+              
+              <motion.div 
+                className="absolute top-0 right-0 w-3 h-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, delay: 0.05 }}
+              >
+                <div className="absolute top-0 right-0 w-full h-[1px] bg-cyberred"></div>
+                <div className="absolute top-0 right-0 h-full w-[1px] bg-cyberred"></div>
+              </motion.div>
+              
+              <motion.div 
+                className="absolute bottom-0 left-0 w-3 h-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, delay: 0.1 }}
+              >
+                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-cyberred"></div>
+                <div className="absolute bottom-0 left-0 h-full w-[1px] bg-cyberred"></div>
+              </motion.div>
+              
+              <motion.div 
+                className="absolute bottom-0 right-0 w-3 h-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, delay: 0.15 }}
+              >
+                <div className="absolute bottom-0 right-0 w-full h-[1px] bg-cyberred"></div>
+                <div className="absolute bottom-0 right-0 h-full w-[1px] bg-cyberred"></div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.a>
+  );
+};
 
 const socialIcons = [
-  {
-    path: "M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z",
-    href: "https://twitter.com"
-  },
-  {
-    path: "M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z",
-    href: "https://facebook.com"
-  },
-  {
-    path: "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z",
-    href: "https://instagram.com"
-  },
-  {
-    path: "M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z",
-    href: "https://youtube.com"
-  }
+  { icon: "fab fa-twitter", href: "https://twitter.com" },
+  { icon: "fab fa-discord", href: "https://discord.com" },
+  { icon: "fab fa-youtube", href: "https://youtube.com" },
+  { icon: "fab fa-instagram", href: "https://instagram.com" },
+  { icon: "fab fa-twitch", href: "https://twitch.tv" }
 ];
 
-const LinkColumn: React.FC<{ title: string; links: FooterLink[] }> = ({ title, links }) => (
-  <div>
-    <h4 className="text-white font-cyber text-lg mb-4">{title}</h4>
-    <ul className="space-y-2 text-gray-400 font-code">
-      {links.map((link, index) => (
-        <motion.li 
-          key={link.label}
-          whileHover={{ x: 5 }}
-          transition={{ type: "spring", stiffness: 400, damping: 10 }}
-        >
-          <Link href={link.href}>
-            <a className="hover:text-cyberred transition-colors">{link.label}</a>
-          </Link>
-        </motion.li>
-      ))}
-    </ul>
-  </div>
-);
-
-const Footer: React.FC = () => {
+// Individual menu link with Japanese hover effect
+const CyberFooterLink: React.FC<{ link: FooterLink }> = ({ link }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
   return (
-    <footer className="bg-cyberdark2 py-12 px-4 md:px-8 lg:px-16 border-t border-cybergray">
+    <motion.li className="relative">
+      <Link href={link.href}>
+        <a 
+          className="font-code text-sm text-gray-400 hover:text-cyberred block py-1"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <AnimatePresence mode="wait">
+            {isHovered ? (
+              <motion.div
+                key="japanese"
+                className="font-jp text-cyberred"
+                initial={{ y: 5, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -5, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {link.japaneseLabel}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="english"
+                initial={{ y: -5, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 5, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {link.label}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          
+          {/* Animated underline */}
+          <motion.div 
+            className="absolute bottom-0 left-0 h-[1px] bg-cyberred"
+            initial={{ width: 0 }}
+            animate={{ width: isHovered ? '100%' : 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        </a>
+      </Link>
+    </motion.li>
+  );
+};
+
+// Terminal section component
+const TerminalSection: React.FC = () => {
+  const [terminalOpen, setTerminalOpen] = useState(false);
+  const [currentText, setCurrentText] = useState("");
+  const fullText = "Accessing CYBERNOMAD mainframe...\nConnection established.\nUser authenticated.\nSystem status: ONLINE\nCyberNeon protocol activated.\nNeo-Tokyo server cluster responding.\nSecurity level: ALPHA\nEnjoy your stay in 2099.";
+  
+  useEffect(() => {
+    if (terminalOpen) {
+      let index = 0;
+      const intervalId = setInterval(() => {
+        if (index < fullText.length) {
+          setCurrentText(fullText.substring(0, index + 1));
+          index++;
+        } else {
+          clearInterval(intervalId);
+        }
+      }, 30);
+      
+      return () => clearInterval(intervalId);
+    } else {
+      setCurrentText("");
+    }
+  }, [terminalOpen]);
+  
+  return (
+    <motion.div 
+      className="bg-cyberdark border border-cybergray overflow-hidden"
+      animate={{ height: terminalOpen ? 200 : 48 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <div 
+        className="bg-cyberdark2 px-4 py-3 font-code text-xs text-gray-300 flex justify-between items-center cursor-pointer border-b border-cybergray"
+        onClick={() => setTerminalOpen(!terminalOpen)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-cyberred"></div>
+            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          </div>
+          <span className="text-cyberred font-bold">SYSTEM_TERMINAL</span>
+        </div>
+        <div className="text-xs">
+          {terminalOpen ? "[ - MINIMIZE - ]" : "[ + EXPAND + ]"}
+        </div>
+      </div>
+      
+      <div className="p-3 font-code text-xs text-green-500 overflow-auto h-full">
+        <div className="whitespace-pre-line">{currentText}</div>
+        {currentText === fullText && (
+          <div className="mt-2 flex items-center">
+            <span className="mr-1 text-cyberblue">root@cybernomad:~$</span>
+            <span className="inline-block w-2 h-4 bg-cyberblue animate-pulse"></span>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Main footer
+const Footer: React.FC = () => {
+  const footerRef = useRef<HTMLDivElement>(null);
+  
+  return (
+    <footer className="relative bg-cyberdark2 pt-16 pb-8 px-4 md:px-8 lg:px-16 overflow-hidden" ref={footerRef}>
+      {/* Top cyber-grid design */}
+      <div className="absolute top-0 left-0 w-full h-[1px] bg-cybergray"></div>
+      <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-cyberred/20 to-transparent"></div>
+      
+      {/* Animated circuit pattern in the background */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <pattern id="circuit" width="120" height="120" patternUnits="userSpaceOnUse">
+            <path d="M30 10 L60 10 L60 30 L90 30 L90 60 L110 60" stroke="#FF2D55" strokeWidth="1" fill="none" />
+            <path d="M10 30 L30 30 L30 60 L60 60 L60 90 L30 90 L30 110" stroke="#FF2D55" strokeWidth="1" fill="none" />
+            <path d="M110 10 L90 10 L90 40 L40 40 L40 70 L10 70" stroke="#FF2D55" strokeWidth="1" fill="none" />
+            <path d="M110 50 L80 50 L80 80 L50 80 L50 110" stroke="#FF2D55" strokeWidth="1" fill="none" />
+            <circle cx="30" cy="10" r="3" fill="#FF2D55" />
+            <circle cx="90" cy="30" r="3" fill="#FF2D55" />
+            <circle cx="110" cy="60" r="3" fill="#FF2D55" />
+            <circle cx="30" cy="110" r="3" fill="#FF2D55" />
+            <circle cx="10" cy="70" r="3" fill="#FF2D55" />
+            <circle cx="50" cy="110" r="3" fill="#FF2D55" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#circuit)" />
+        </svg>
+      </div>
+      
       <div className="container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-12">
+        {/* Main grid content */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 relative">
+          {/* Logo and social icons */}
           <motion.div
+            className="md:col-span-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <h3 className="text-xl font-cyber font-bold text-white mb-4">CYBER<span className="text-cyberred">NOMAD</span></h3>
-            <p className="text-gray-400 text-sm font-code mb-6">
-              The definitive cyberpunk anime experience. Dive into a world of high tech and low life.
-            </p>
-            <div className="flex space-x-4">
-              {socialIcons.map((icon, index) => (
-                <motion.div 
+            {/* Terminal effect logo */}
+            <motion.div
+              className="bg-cyberdark border-2 border-cybergray p-4 mb-6 max-w-xs relative overflow-hidden"
+              initial={{ x: -100 }}
+              whileInView={{ x: 0 }}
+              viewport={{ once: true }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            >
+              <div className="relative z-10">
+                <h3 className="text-2xl font-cyber font-bold flex flex-col">
+                  <motion.span 
+                    className="text-white"
+                    animate={{ color: ["#ffffff", "#FF2D55", "#ffffff"] }}
+                    transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                  >
+                    CYBER<span className="text-cyberred">NOMAD</span>
+                  </motion.span>
+                  <span className="text-sm font-code text-cyberblue mt-1">// ネオ東京 2099</span>
+                </h3>
+                
+                <p className="text-gray-400 text-sm font-code mt-4 mb-1">
+                  The definitive cyberpunk anime experience. Dive into a world of high tech and low life.
+                </p>
+                
+                <div className="font-jp text-xs text-cyberred opacity-70 mb-2">
+                  テクノロジーと人間性が交差する世界
+                </div>
+              </div>
+              
+              {/* Background scan effect */}
+              <motion.div 
+                className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-cyberred/10 to-transparent"
+                animate={{ 
+                  y: [0, 150, 0],
+                }}
+                transition={{ 
+                  duration: 8, 
+                  repeat: Infinity,
+                  ease: "linear" 
+                }}
+              />
+              
+              {/* Border corners */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyberred"></div>
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyberred"></div>
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyberred"></div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyberred"></div>
+            </motion.div>
+            
+            {/* Social Icons - Grid layout */}
+            <div className="grid grid-cols-5 gap-2">
+              {socialIcons.map((social, index) => (
+                <motion.div
                   key={index}
-                  whileHover={{ y: -5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <SocialIcon path={icon.path} href={icon.href} />
+                  <CyberSocialIcon icon={social.icon} href={social.href} />
                 </motion.div>
               ))}
             </div>
+            
+            {/* Terminal section for immersive effect */}
+            <div className="mt-6">
+              <TerminalSection />
+            </div>
           </motion.div>
           
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <LinkColumn title="NAVIGATION" links={navLinks} />
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <LinkColumn title="RESOURCES" links={resourceLinks} />
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+          {/* Navigation links - Three columns */}
+          <motion.div 
+            className="md:col-span-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <LinkColumn title="LEGAL" links={legalLinks} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Navigation Links */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <h4 className="text-cyberred font-cyber text-lg mb-4 inline-block">
+                    NAV_LINKS
+                  </h4>
+                  <motion.div 
+                    className="absolute -bottom-1 left-0 h-[1px] bg-cyberred" 
+                    initial={{ width: 0 }}
+                    whileInView={{ width: '100%' }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                  />
+                </div>
+                <ul className="space-y-2">
+                  {navLinks.map((link, index) => (
+                    <motion.div
+                      key={link.label}
+                      initial={{ x: -20, opacity: 0 }}
+                      whileInView={{ x: 0, opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.3, delay: 0.6 + index * 0.1 }}
+                    >
+                      <CyberFooterLink link={link} />
+                    </motion.div>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Resources */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <h4 className="text-cyberred font-cyber text-lg mb-4 inline-block">
+                    RESOURCES
+                  </h4>
+                  <motion.div 
+                    className="absolute -bottom-1 left-0 h-[1px] bg-cyberred" 
+                    initial={{ width: 0 }}
+                    whileInView={{ width: '100%' }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                  />
+                </div>
+                <ul className="space-y-2">
+                  {resourceLinks.map((link, index) => (
+                    <motion.div
+                      key={link.label}
+                      initial={{ x: -20, opacity: 0 }}
+                      whileInView={{ x: 0, opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
+                    >
+                      <CyberFooterLink link={link} />
+                    </motion.div>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Legal + Version info with data animation */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <h4 className="text-cyberred font-cyber text-lg mb-4 inline-block">
+                    LEGAL
+                  </h4>
+                  <motion.div 
+                    className="absolute -bottom-1 left-0 h-[1px] bg-cyberred" 
+                    initial={{ width: 0 }}
+                    whileInView={{ width: '100%' }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: 0.7 }}
+                  />
+                </div>
+                <ul className="space-y-2">
+                  {legalLinks.map((link, index) => (
+                    <motion.div
+                      key={link.label}
+                      initial={{ x: -20, opacity: 0 }}
+                      whileInView={{ x: 0, opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.3, delay: 1 + index * 0.1 }}
+                    >
+                      <CyberFooterLink link={link} />
+                    </motion.div>
+                  ))}
+                </ul>
+                
+                {/* System status section */}
+                <motion.div 
+                  className="mt-6 border border-cybergray p-3 bg-cyberdark"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 1.2 }}
+                >
+                  <div className="text-xs font-code text-cyberblue">
+                    <div className="flex justify-between">
+                      <span>VERSION</span>
+                      <span>v0.9.2</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>SYSTEM</span>
+                      <span className="text-green-500">ONLINE</span>
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span>PING</span>
+                      <motion.span 
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        23ms
+                      </motion.span>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
           </motion.div>
         </div>
         
-        <div className="mt-12 pt-6 border-t border-cybergray text-center text-gray-500 text-xs font-code">
-          <p>© 2099 CYBERNOMAD CORPORATION. ALL RIGHTS RESERVED. THIS IS A FICTIONAL WEBSITE.</p>
-        </div>
+        {/* Bottom bar with copyright and final animation */}
+        <motion.div 
+          className="mt-12 pt-6 border-t border-cybergray relative"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 1.5 }}
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 text-xs font-code">
+            <div className="mb-4 md:mb-0 text-center md:text-left">
+              <div>© 2099 CYBERNOMAD CORPORATION. ALL RIGHTS RESERVED.</div>
+              <div className="text-gray-600 mt-1">THIS IS A FICTIONAL WEBSITE.</div>
+            </div>
+            
+            <div className="flex space-x-2">
+              <motion.div 
+                className="px-2 py-1 border border-cybergray bg-cyberdark"
+                whileHover={{ borderColor: "#FF2D55" }}
+              >
+                <span className="text-cyberred font-jp">日本語</span>
+              </motion.div>
+              <motion.div 
+                className="px-2 py-1 border border-cybergray bg-cyberdark"
+                whileHover={{ borderColor: "#FF2D55" }}
+              >
+                <span className="text-cyberred">ENGLISH</span>
+              </motion.div>
+            </div>
+          </div>
+          
+          {/* Scanline effect at the bottom */}
+          <motion.div 
+            className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyberred/30 to-transparent"
+            animate={{ 
+              x: ["-100%", "100%"],
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          />
+        </motion.div>
       </div>
     </footer>
   );
