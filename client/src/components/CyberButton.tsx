@@ -66,16 +66,8 @@ const CyberButton: React.FC<CyberButtonProps> = ({
           setTimeout(() => {
             setIsGlitching(false);
             
-            // If we're done with the sequence, show Japanese text
-            if (step >= totalSteps) {
-              setDisplayedText(
-                <span className="font-jp">{japaneseTextRef.current}</span>
-              );
-            } 
-            // Otherwise continue with English
-            else {
-              setDisplayedText(englishTextRef.current);
-            }
+            // Show original English text when not hovering
+            setDisplayedText(englishTextRef.current);
           }, glitchDuration);
         }
         
